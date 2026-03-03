@@ -2,26 +2,37 @@
 #SBATCH --account=
 #SBATCH --partition=boost_usr_prod
 #SBATCH --qos=boost_qos_lprod
-#SBATCH --time=24:00:00
-#SBATCH --nodes=1
+#SBATCH --time=2:00:00
+#SBATCH --nodes=32
+#SBATCH --ntasks=512
 #SBATCH --ntasks-per-node=16
 #SBATCH --cpus-per-task=2
 #SBATCH --job-name=run_pinocchio
-#SBATCH --array=0-1%10
-#SBATCH --output=../logs/runs/slurm-%x_%A_%a.out
+#SBATCH --array=0-10%2
+#SBATCH --output=../logs/runs/%A/slurm-%x_%a.out
 
 # PLEASE, SBATCH THIS FILE FROM INSIDE jobs/
 # (otherwise it will not work as intended)
 
 # ====================== #
-# MODULES
+# MODULES & LIBRARIES
 # ====================== #
 
-module load openmpi/
-module load gsl/
-module load fftw/
+module load nvhpc/24.3
+module load openmpi/4.1.6--nvhpc--24.3
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/pfft/lib
+LIB=/leonardo_scratch/fast/CNHPC_1498509/lib/nvhpc-23.11
+LIB_Mass_shell=/leonardo_scratch/large/userexternal/tbatalha/Pinocchio/dep
+
+HEALPIX_LIB="${LIB_Mass_shell}/Healpix_3.83/lib"
+CFITSIO_LIB="${LIB_Mass_shell}/lib"
+FTTW_LIB="${LIB}/fftw/fftw-3.3.10/lib"
+GSL_LIB="${LIB}/gsl/gsl-2.7.1/lib"
+PFFT_LIB="${LIB}/pfft/pfft/lib"
+
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${FTTW_LIB}:${GSL_LIB}:${PFFT_LIB}:${PMT_LIB}:${HEALPIX_LIB}:${CFITSIO_LIB}
+
+set -euo pipefail
 
 # ====================== #
 # PATHS & NAMES
@@ -60,6 +71,7 @@ echo -e "\033[32m[JOB]\033[0m PARAMFILE .......... = ${PARAMFILE}"
 echo -e "\033[32m[JOB]\033[0m .................... " 
 echo -e "\033[32m[JOB]\033[0m PINOCCHIO .......... = ${EXEC}" 
 echo -e "\033[32m[JOB]\033[0m NODES .............. = ${SLURM_JOB_NUM_NODES}"
+echo -e "\033[32m[JOB]\033[0m TOTAL TASKS ........ = ${SLURM_NTASKS}"
 echo -e "\033[32m[JOB]\033[0m NTASKS-per-NODE .... = ${SLURM_NTASKS_PER_NODE}"
 echo -e "\033[32m[JOB]\033[0m CPUS-per-TASK ...... = ${SLURM_CPUS_PER_TASK}"
 
@@ -74,16 +86,24 @@ if ! [ -f "$PARAMFILE" ]; then
 	exit 1
 fi
 
-echo -e "\033[32m[JOB $(date +"%H:%M:%S")]\033[0m Running simulation $RUN_NAME"
+echo -e "\033[32m[JOB $(date +"%H:%M:%S")]\033[0m Running $RUN_NAME"
 
 # ====================== #
 # RUN
 # ====================== #
 
+# the following exports are not strictly fundamental but may be necessary on some clusters
+export OMP_TARGET_OFFLOAD=mandatory
+export OMP_PROC_BIND=true
+export OMP_WAIT_POLICY=ACTIVE
+export OMP_PLACES=cores
+
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-MPI_PROCS="$SLURM_NTASKS_PER_NODE"
+
+MPI_PROCS="$SLURM_NTASKS --map-by ppr:$SLURM_NTASKS_PER_NODE:node:pe=$OMP_NUM_THREADS"
 LOG_FILE="pinocchio_$RUN_NAME.log"
 
-mpirun -n $MPI_PROCS $EXEC $PARAM > $LOG_FILE
+echo -e "\033[32m[JOB $(date +"%H:%M:%S")]\033[0m mpirun -n $MPI_PROCS $EXEC $PARAMFILE > $LOG_FILE"
+mpirun -n $MPI_PROCS $EXEC $PARAMFILE > $LOG_FILE
 
 echo -e "\033[32m[JOB $(date +"%H:%M:%S")]\033[0m Run finished. Log saved to $LOG_FILE"

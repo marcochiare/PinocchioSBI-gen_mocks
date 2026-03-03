@@ -19,6 +19,8 @@ export PYTHONUNBUFFERED=1
 # PYTHON ENVIRONMENT
 # ====================== #
 
+module load python/3.10.8--gcc--8.5.0
+
 source $HOME/dott/env/gen_mocks/bin/activate
 
 # ====================== #
@@ -58,22 +60,36 @@ PARAMS=(
 # Always include 0. or whatever ending redshift for the simulation
 # (values are sorted anyways)
 Z_SNAP=(
-	2.041
-	1.900
-	1.800
-	1.700
-	1.600
-	1.500
-	1.400
-	1.270
-	1.150
-	1.019
-	0.900
-	0.796
-	0.650
-	0.506
-	0.192
-	0.000
+	2.000000000000
+	1.907434262995
+	1.723188618705
+	1.554382912656
+	1.399160301249
+	1.255918543942
+	1.000000000003
+	0.942992679411
+	0.886451684155
+	0.831760033291
+	0.778812007111
+	0.727508223193
+	0.677755169340
+	0.629464776814
+	0.582554030021
+	0.536944609231
+	0.492562563187
+	0.449338008940
+	0.407204856351
+	0.366100555129
+	0.325965862358
+	0.286744628730
+	0.248383601907
+	0.210832245519
+	0.174042572504
+	0.137968991589
+	0.102568165866
+	0.067798882457
+	0.033621932408
+	0.000000000000
 )
 
 # ====================== #
@@ -88,14 +104,13 @@ SETUP=(
 	GridSize=2160
 	OmegaBaryon=0.049
 	PrimordialIndex=0.96
-	StartingzForPLC=2.041
+	StartingzForPLC=2.0
 	PLCAperture=70.
 	MassMapNSIDE=2048
 	PLCProvideConeData='DISABLE'
 	PLCCenter='DISABLE'
 	PLCAxis='DISABLE'
 	CatalogInAscii='DISABLE'
-	#NumFiles=4 # yes??
 	MinHaloMass=10
 	BoundaryLayerFactor=2.5
 	MaxMem=31000
