@@ -4,6 +4,8 @@
 """
 Pinocchio painting module (MAP mode or PARTICLE mode) + HOD galaxies + (particle) miscentering + profiles.
 
+This script is part of CosmoPostProcess and has been written by Roberto Ingrao.
+
 ================================================================================
 READ ME (high-level mental model)
 ================================================================================

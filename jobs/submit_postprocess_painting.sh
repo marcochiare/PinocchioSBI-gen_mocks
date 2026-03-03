@@ -46,7 +46,7 @@ MODEL_BASE="${MODEL_BASE:-model}"
 RUNS_DIR="${RUNS_DIR:-$HOME/path/to/all/runs/}"
 MAINOUT_DIR="${MAINOUT_DIR:-$HOME/path/to/all/runs/outputs}"
 
-MODE="particles"
+MODE="${MODE:-particles}"
 
 # ============================================ #
 # SBATCH
@@ -55,7 +55,7 @@ MODE="particles"
 BASH_SCRIPT="run_cosmopost_painting.sh"
 
 declare -A WHICH_NUM_SHELLS=(
-	["ncms"]=16
+	["ncms"]=30
 	["elb"]=24
 )
 NUM_SHELLS="${WHICH_NUM_SHELLS[$DATA_SET]}"

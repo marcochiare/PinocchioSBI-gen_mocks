@@ -37,6 +37,7 @@ export PYTHONUNBUFFERED=1
 # ----------------------------
 # Environment
 # ----------------------------
+module load python/3.10.8--gcc--8.5.0
 source $HOME/dott/envs/cosmopostprocess/bin/activate
 
 # ----------------------------

@@ -4,6 +4,8 @@
 """
 Compute global richness (lambda_obs) over multiple redshift shells.
 
+This script is part of CosmoPostProcess and has been written by Roberto Ingrao.
+
 This script is designed to:
   - Read many halo-shell NPZ catalogues (each shell has theta/phi/z/Mass for halos)
   - For each shell, read the *galaxy catalogue* previously generated for that shell
@@ -35,6 +37,8 @@ from tqdm.auto import tqdm
 
 from astropy.cosmology import FlatLambdaCDM
 from astropy import units as u_ast
+
+from PinocchioParamfile import params_file
 
 from scipy.spatial import cKDTree
 
