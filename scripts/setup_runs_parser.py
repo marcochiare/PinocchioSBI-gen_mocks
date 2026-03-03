@@ -114,6 +114,7 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
     cosmo_params = read_cosmo_params(cosmo_params_file, params_idx, params)
 
     z_out_filename = 'outputs'
+    status_filename = 'status'
 
     for run_number in range(total_runs):
 
@@ -165,6 +166,15 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
                 f.write(f'{kh_el:<15.10f}{Pk_el:.10f}\n')
 
         printlog(f'{run_name} setup done.')
+
+    # Create a "status" file
+    status_file = f'{dir_path}/{status_filename}.txt'
+    with open(status_file, 'w') as f:
+        for run_number in range(total_runs):
+            run_name = f'{base_run_name}_{run_number}'
+            f.write(f'{run_name:<{len(base_run_name)+9}} waiting\n')
+    
+    printlog(f'Status file {status_file} saved.')
 
     printlog('Setup done.')
 

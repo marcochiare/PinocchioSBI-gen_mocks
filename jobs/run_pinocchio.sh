@@ -39,6 +39,7 @@ set -euo pipefail
 # 
 # Expected structure:
 # {MAIN_DIR}/{RUN_BASENAME}_{ID}/{PARAMFILE}
+# {MAIN_DIR}/{STATUSNAMEFILE}
 #
 # ====================== #
 
@@ -59,6 +60,10 @@ SIM_DIR="$MAIN_DIR/$RUN_NAME"
 # How the parameter file is named in each run directory
 PARAMFILE="${PARAMFILE:-parameter_file_$RUN_NAME}"
 
+# Name of the status file
+STATUSNAMEFILE="${STATUSNAMEFILE:-status.txt}"
+STATUSFILE="$MAIN_DIR/$STATUSNAMEFILE"
+
 # ====================== #
 # PRINTS
 # ====================== #
@@ -78,6 +83,11 @@ echo -e "\033[32m[JOB]\033[0m CPUS-per-TASK ...... = ${SLURM_CPUS_PER_TASK}"
 # ====================== #
 # CHECKS
 # ====================== #
+
+if ! [ -f "$STATUSFILE" ]; then
+	echo -e "\033[31m[ERR]\033[0m Status file $STATUSFILE not found." 
+	exit 1
+fi
 
 cd $SIM_DIR || { echo -e "\033[31m[ERR]\033[0m Directory $SIM_DIR not found."; exit 1; }
 
@@ -102,8 +112,17 @@ export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 MPI_PROCS="$SLURM_NTASKS --map-by ppr:$SLURM_NTASKS_PER_NODE:node:pe=$OMP_NUM_THREADS"
 LOG_FILE="pinocchio_$RUN_NAME.log"
+STATUS="done"
 
 echo -e "\033[32m[JOB $(date +"%H:%M:%S")]\033[0m mpirun -n $MPI_PROCS $EXEC $PARAMFILE > $LOG_FILE"
-mpirun -n $MPI_PROCS $EXEC $PARAMFILE > $LOG_FILE
+mpirun -n $MPI_PROCS $EXEC $PARAMFILE > $LOG_FILE || STATUS="FAILED"
+
+# Change the status in the STATUSFILE
+sed -i "s/^\($RUN_NAME\s*\)waiting/\1$STATUS/" "$STATUSFILE"
+
+if [ "$STATUS" = "FAILED" ]; then
+	echo -e "\033[31m[ERR]\033[0m Run failed. Log saved to $LOG_FILE"
+	exit 1
 
 echo -e "\033[32m[JOB $(date +"%H:%M:%S")]\033[0m Run finished. Log saved to $LOG_FILE"
+exit 0
