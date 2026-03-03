@@ -147,7 +147,7 @@ class params_file(object):
 
         return default_params
  
-    def __init__(self, **kwargs):
+    def __init__(self, no_header: bool = False, **kwargs):
         """
         Initialise a Pinocchio parameter file to its default values.
 
@@ -168,9 +168,15 @@ class params_file(object):
             - setup
             - cosmo
         containing the specifications of their respective group of parameters
+
+        Args:
+            no_header (bool, default=False): suppress the fancy header in the parameter file.
+            **kwargs: Pinocchio parameter file keyword argument to change.
         """
 
         self.default_params = self._build_defaults()
+
+        self.no_header = no_header
         
         for group in range(self.n_groups):
 
@@ -197,7 +203,14 @@ class params_file(object):
         KEY_WIDTH = 35
         COMM_WIDTH = 50
 
-        text = r"""
+        if self.no_header:
+
+            text = "# PINOCCHIO parameter file\n"
+            text += "#========================#\n\n"
+    
+        else:
+
+            text = r"""
 #===============================================#
 #         _                      _     _        #
 #   _ __ (_)_ __   ___   ___ ___| |__ (_) ___   #
@@ -206,7 +219,7 @@ class params_file(object):
 #  | .__/|_|_| |_|\___/ \___\___|_| |_|_|\___/  #
 #  |_|                                          #
 #===============================================#"""
-        text += '\n\n'
+            text += '\n\n'
 
         for group in range(self.n_groups):
 
@@ -258,9 +271,6 @@ class params_file(object):
         """
         Loads the values from a parameter file saved on disc into the class.
         This works also with incomplete parameter files (i.e. containing only some values to change)
- 
-        NB: it will not check that the provided value makes sense
-        (e.g. passing a string to a float parameter)
 
         Args:
             file_path (str): path to parameter file
@@ -302,7 +312,8 @@ class params_file(object):
                 if not line:
                     continue
                 
-                tokens = line.split()
+                # Split key/val in max 2 elements (spec. for PLCCenter and PLCAxis)
+                tokens = line.split(maxsplit=1)
                 key = tokens[0]
 
                 if key not in all_keys:
@@ -312,12 +323,12 @@ class params_file(object):
 
                 # Flag only parameters
                 if len(tokens) == 1:
-                    value = None
+                    value = ''
 
                 else:
                     value = tokens[1]
 
-                # Convert type; all value are strings initially
+                # Convert type; all values are strings initially
                 if value is not None:
 
                     default_value = param_dict[key]
@@ -331,7 +342,7 @@ class params_file(object):
                             pass
 
                     except ValueError:
-                        pass
+                        raise ValueError(f'I am reading a value ({value}) that does not match with the default type for {key}. Expected {type(default_value)}.')
 
                 # Handle DISABLED
                 if disabled:
