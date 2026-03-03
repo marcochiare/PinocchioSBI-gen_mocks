@@ -133,8 +133,7 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
             # Same scheme for each cosmo parameter that needs to be read and written to the parameter file
             Omega0 = cosmo_params[run_number, params.index('Omega_m')] if 'Omega_m' in params else 'DEFAULT',
             OmegaLambda = 1. - cosmo_params[run_number, params.index('Omega_m')] if 'Omega_m' in params else 'DEFAULT',
-            #Sigma8 = cosmo_params[run_number, params.index('sigma_8')] if 'sigma_8' in params else 'DEFAULT',
-            Sigma8 = 0., # Sigma8 in Pinocchio is computed from the given P(k) (that uses the one provided) if this is zero
+            Sigma8 = cosmo_params[run_number, params.index('sigma_8')] if 'sigma_8' in params else 'DEFAULT',
             Hubble100 = cosmo_params[run_number, params.index('h')] if 'h' in params else 'DEFAULT',
             DEw0 = cosmo_params[run_number, params.index('w0')] if 'w0' in params else 'DEFAULT',
             DEwa = cosmo_params[run_number. params.index('wa')] if 'wa' in params else 'DEFAULT',
@@ -144,19 +143,22 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
             **kwargs
         )
 
-        P.write(f'{run_dir}/parameter_file_{run_name}')
-
         kh, Pk = camb_linear_powerspectrum(
                 P.cosmo['Omega0'],
                 P.cosmo['Sigma8'],
                 P.cosmo['Hubble100'],
                 P.cosmo['OmegaBaryon'],
                 P.cosmo['PrimordialIndex'],
-                minkh=1.1e-5,
-                maxkh=50.375,
-                kmax=1e2,
-                npoints=1125
+                minkh=5e-5,
+                maxkh=1e2,
+                kmax=1.5e2,
+                npoints=1000
                 )
+        
+        # Sigma8 in Pinocchio is computed from the given P(k) (that uses the one provided/default) if this is zero
+        P.cosmo['Sigma8'] = 0. 
+
+        P.write(f'{run_dir}/parameter_file_{run_name}')
 
         with open(f'{run_dir}/{camb_name}', 'w') as f:
             for kh_el, Pk_el in zip(kh, Pk):
