@@ -78,6 +78,10 @@ torch.set_num_interop_threads(1)
 # These are later changed in the main() function with the parsed values 
 Om0 = 0.32
 H0 = 67.0
+Sigma8 = 0.811
+ns = 0.965
+OmegaB = 0.049
+
 cosmo = FlatLambdaCDM(Om0=Om0, H0=H0)
 h = H0 / 100.0
 
@@ -129,7 +133,7 @@ def prepare_colossus_cosmology():
         os.environ["HOME"] = os.environ.get("SLURM_SUBMIT_DIR", "/tmp")
 
     # Define cosmology in Colossus and activate it.
-    cosmo_pars = dict(flat=True, H0=args['H0'], Om0=args['Omega0'], Ob0=0.049, sigma8=0.811, ns=0.965)
+    cosmo_pars = dict(flat=True, H0=H0, Om0=Om0, Ob0=OmegaB, sigma8=Sigma8, ns=ns)
     if "myCosmo" not in col_cosmo.cosmologies:
         col_cosmo.addCosmology("myCosmo", cosmo_pars)
 
@@ -431,7 +435,7 @@ def compute_pmem_for_center(
         model_class=Model,
         model_kwargs=_pmem_model_kwargs,
         model_state_dict=_pmem_model.state_dict(),
-        Omega_m=args['Omega0'],
+        Omega_m=Om0,
         h=h,
         feature_scaling=_pmem_feature_scaling,
         num_workers=_LAMBDA_NUM_WORKERS,
@@ -747,13 +751,19 @@ def main():
     # this reads the Pinocchio parameter file and extracts:
     # - Hubble100
     # - Omega0
-    global H0, h, Om0, cosmo
+    # - OmegaBaryon
+    # - Sigma8
+    # - n_s
+    global H0, h, Om0, cosmo, OmegaB, ns, Sigma8
 
     P = params_file()
     P.load(args.paramfile_path)
 
     h = P.cosmo['Hubble100']
     Om0 = P.cosmo['Omega0']
+    OmegaB = P.cosmo['OmegaBaryon']
+    ns = P.cosmo['PrimordialIndex']
+    Sigma8 = P.cosmo['Sigma8']
     H0 = h * 100.0
 
     cosmo = FlatLambdaCDM(Om0=Om0, H0=H0)

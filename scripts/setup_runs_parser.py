@@ -155,10 +155,14 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
                 kmax=1.5e2,
                 npoints=1000
                 )
-        
+
+        # save a version with non-zero sigma8 for tracking the value
+        P.write(f'{run_dir}/parameter_file_{run_name}_sig8') 
+
         # Sigma8 in Pinocchio is computed from the given P(k) (that uses the one provided/default) if this is zero
         P.cosmo['Sigma8'] = 0. 
 
+        # use this version to run Pinocchio
         P.write(f'{run_dir}/parameter_file_{run_name}')
 
         with open(f'{run_dir}/{camb_name}', 'w') as f:

@@ -172,6 +172,9 @@ BoxSize = 3380.0  # Mpc/h
 Om0 = 0.32
 H0 = 67.0
 GridSize = 3072.
+Sigma8 = 0.811
+ns = 0.965
+OmegaB = 0.049
 
 # Astropy cosmology object for distances
 cosmo = FlatLambdaCDM(Om0=Om0, H0=H0)
@@ -673,7 +676,7 @@ def prepare_colossus_cosmology():
     if "HOME" not in os.environ or not os.environ["HOME"]:
         os.environ["HOME"] = os.environ.get("SLURM_SUBMIT_DIR", "/tmp")
 
-    cosmo_pars = dict(flat=True, H0=H0, Om0=Om0, Ob0=0.049, sigma8=0.811, ns=0.965)
+    cosmo_pars = dict(flat=True, H0=H0, Om0=Om0, Ob0=OmegaB, sigma8=Sigma8, ns=ns)
     if "myCosmo" not in col_cosmo.cosmologies:
         col_cosmo.addCosmology("myCosmo", cosmo_pars)
 
@@ -1621,12 +1624,18 @@ def main():
     # - Omega0
     # - GridSize
     # - BoxSize
+    # - OmegaBaryon
+    # - Sigma8
+    # - n_s
     P = params_file()
     P.load(_ARGS.paramfile_path)
-    global H0, h, Om0, GridSize, BoxSize
+    global H0, h, Om0, GridSize, BoxSize, OmegaB, ns, Sigma8
 
     h = P.cosmo['Hubble100']
     Om0 = P.cosmo['Omega0']
+    OmegaB = P.cosmo['OmegaBaryon']
+    ns = P.cosmo['PrimordialIndex']
+    Sigma8 = P.cosmo['Sigma8']
     GridSize = P.setup['GridSize']
     BoxSize = P.setup['BoxSize']
     H0 = h * 100.0
@@ -1872,7 +1881,7 @@ def main():
                 z_grid = np.linspace(zmin, zmax, 20)
                 R_grid = np.geomspace(0.02, 10.0, 128)
                 _G_SIGMAR_PROVIDER = build_sigmaR_provider(
-                    {"Om0": Om0, "h": h, "Ob0": 0.049, "ns": 0.965, "sigma8": 0.811},
+                    {"Om0": Om0, "h": h, "Ob0": OmegaB, "ns": ns, "sigma8": Sigma8},
                     z_grid,
                     R_grid,
                 )
