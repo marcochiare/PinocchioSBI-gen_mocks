@@ -114,7 +114,7 @@ class params_file(object):
         default_params['group6'] = {'PARAM': OrderedDict(), 'COMM': {}}
         default_params['group6']['PARAM']['StartingzForPLC'] = 0.3
         default_params['group6']['PARAM']['LastzForPLC'] = 0.0
-        default_params['group6']['PARAM']['PLCAperture'] = 30
+        default_params['group6']['PARAM']['PLCAperture'] = 30.
         default_params['group6']['PARAM']['PLCProvideConeData'] = ''
         default_params['group6']['PARAM']['PLCCenter'] = '0. 0. 0.'
         default_params['group6']['PARAM']['PLCAxis'] = '1. 1. 0.'
