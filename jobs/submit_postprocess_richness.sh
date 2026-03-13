@@ -49,6 +49,10 @@ RUNS_DIR="${RUNS_DIR:-$HOME/path/to/all/runs/}"
 MAINPP_DIR="${MAINPP_DIR:-$HOME/path/to/all/painting/outputs}"
 MAINOUT_DIR="${MAINOUT_DIR:-$MAINPP_DIR}"
 
+# Name of the status file
+STATUSNAMEFILE="${STATUSNAMEFILE:-status.txt}"
+STATUSFILE="$RUNS_DIR/$STATUSNAMEFILE"
+
 # ============================================ #
 # SBATCH
 # ============================================ #
@@ -80,6 +84,7 @@ for ((m=$N_START; m<$N_END; m++)); do
 		PARAM_PATH="$PARAM_PATH"
 		HALO_ROOT="$PIN_DIR"
 		GALAXY_ROOT="$PP_DIR/outputs_particles"
+		STATUSFILE="$STATUSFILE"
 	)
 	EXPORTS_STR=$(IFS=,; echo "${EXPORTS[*]}")
 	

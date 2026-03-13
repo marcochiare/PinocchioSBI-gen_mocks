@@ -46,6 +46,10 @@ RUN_BASENAME="${RUN_BASENAME:-model}"
 RUNS_DIR="${RUNS_DIR:-$HOME/path/to/all/runs/}"
 MAINOUT_DIR="${MAINOUT_DIR:-$HOME/path/to/all/runs/outputs}"
 
+# Name of the status file
+STATUSNAMEFILE="${STATUSNAMEFILE:-status.txt}"
+STATUSFILE="$RUNS_DIR/$STATUSNAMEFILE"
+
 MODE="${MODE:-particles}"
 
 # ============================================ #
@@ -91,6 +95,7 @@ for ((m=$N_START; m<$N_END; m++)); do
 		PARAM_PATH="$PARAM_PATH"
 		MODE="$MODE"
 		DATA_SET="$DATA_SET"
+		STATUSFILE="$STATUSFILE"
 	)
 	EXPORTS_STR=$(IFS=,; echo "${EXPORTS[*]}")
 

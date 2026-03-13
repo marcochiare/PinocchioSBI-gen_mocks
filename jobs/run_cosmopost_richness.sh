@@ -49,6 +49,9 @@ OUT_DIR="${OUT_DIR:-${PIN_DIR}}"
 # The PINOCCHIO parameter file for the run
 PARAM_PATH="${PARAM_PATH:-$PIN_DIR/parameter_file}"
 
+# Path to a status file to update, if any
+STATUSFILE="${STATUSFILE:-}"
+
 # Richness script from COSMOPOSTPROCESS
 PY_SCRIPT="${PY_SCRIPT:-../scripts/cosmopostprocess_richness.py}"
 
@@ -101,6 +104,23 @@ echo -e "\033[32m[Job]\033[0m PYTHON VERSION ...... = $(python -V)"
 echo -e "\033[32m[Job]\033[0m Note: f_bkg uses fixed annulus 3-5 cMpc/h inside compute_richness_merged.py"
 
 # ----------------------------
+# Status file, if any 
+# ----------------------------
+if [[ -n "$STATUSFILE" ]]; then
+
+	# Check that status in STATUSFILE is "painting-done" or "richness-FAILED" before starting
+	CURRENT_STATUS=$(sed -n "s/^$RUN_MODEL\s\+//p" "$STATUSFILE")
+
+	if [[ ! "$CURRENT_STATUS" =~ ^(painting-done|richness-FAILED)$ ]]; then
+		echo -e "\033[31m[ERR]\033[0m $RUN_MODEL has an invalid status. Found $CURRENT_STATUS."
+		exit 1
+	fi
+
+	# Update the status in STATUSFILE with "painting"
+	STATUS="enriching"
+	sed -i "s/^\($RUN_MODEL\s\+\).*/\1$STATUS/" "$STATUSFILE"
+fi
+# ----------------------------
 # Run global richness computation
 # ----------------------------
 ARGS=(
@@ -122,8 +142,18 @@ if [[ "${NO_PROGRESS}" == "1" ]]; then
   ARGS+=(--no-progress)
 fi
 
-srun python -u "${PY_SCRIPT}" "${ARGS[@]}"
+srun python -u "${PY_SCRIPT}" "${ARGS[@]}" && STATUS="richness-done" || STATUS="richness-FAILED"
 
+if [[ -n "$STATUSFILE" ]]; then
+
+	# Update the status in STATUSFILE based on the exit code
+	sed -i "s/^\($RUN_NAME\s\+\).*/\1$STATUS/" "$STATUSFILE"
+
+	if [[ "$STATUS" == "richness-FAILED" ]]; then
+		echo -e "\033[31m[ERR]\033[0m The computation of the richness has failed."
+		exit 1
+	fi
+fi
 
 #echo -e "\033[32m[JOB]\033[0m Removing galaxy cat"
 

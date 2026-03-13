@@ -72,6 +72,9 @@ RUN_MODEL="${RUN_MODEL:-model}"
 # The PINOCCHIO parameter file for the run
 PARAM_PATH="${PARAM_PATH:-$PIN_DIR/parameter_file}"
 
+# Path to a status file to update, if any
+STATUSFILE="${STATUSFILE:-}"
+
 # ----------------------------
 # Shell catalogue list (index 0 = z0.000_0.100 ... index 24 = z3.800_4.000)
 # ----------------------------
@@ -190,6 +193,24 @@ if [[ "${DISABLE_BARY}" == "1" ]]; then
 fi
 
 # ----------------------------
+# Status file, if any
+# ----------------------------
+if [[ -n "$STATUSFILE" ]]; then
+
+	# Check that status in STATUSFILE is "zshells-done" or "painting-FAILED" before starting
+	CURRENT_STATUS=$(sed -n "s/^$RUN_MODEL\s\+//p" "$STATUSFILE")
+
+	if [[ ! "$CURRENT_STATUS" =~ ^(zshells-done|painting-FAILED)$ ]]; then
+		echo -e "\033[31m[ERR]\033[0m $RUN_MODEL has an invalid status. Found $CURRENT_STATUS."
+		exit 1
+	fi
+
+	# Update the status in STATUSFILE with "painting"
+	STATUS="painting"
+	sed -i "s/^\($RUN_MODEL\s\+\).*/\1$STATUS/" "$STATUSFILE"
+fi
+
+# ----------------------------
 # Run
 # ----------------------------
 srun python -u "${PY_SCRIPT}" \
@@ -209,6 +230,17 @@ srun python -u "${PY_SCRIPT}" \
   --pool-chunksize "${POOL_CHUNKSIZE}" \
   --procs "${PROCS}" \
   --profile-procs "${PROFILE_PROCS}" \
-  --progress-to-stdout
+  --progress-to-stdout && STATUS="painting-done" || STATUS="painting-FAILED"
+
+if [[ -n "$STATUSFILE" ]]; then
+
+	# Update the status in STATUSFILE based on the exit code
+	sed -i "s/^\($RUN_NAME\s\+\).*/\1$STATUS/" "$STATUSFILE"
+
+	if [[ "$STATUS" == "painting-FAILED" ]]; then
+		echo -e "\033[31m[ERR]\033[0m The painting of the PLC has failed."
+		exit 1
+	fi
+fi
 
 echo -e "\033[32m[Job]\033[0m finished"
