@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#SBATCH --account=iscrc_graphmls
+#SBATCH --account=CNHPC_1498509
 #SBATCH --partition=boost_usr_prod
 #SBATCH --qos=boost_qos_lprod
 #SBATCH --time=4:00:00
@@ -53,8 +53,8 @@ PARAM_PATH="${PARAM_PATH:-$PIN_DIR/parameter_file}"
 PY_SCRIPT="${PY_SCRIPT:-../scripts/cosmopostprocess_richness.py}"
 
 HALO_ROOT="${HALO_ROOT:-${PIN_DIR}}"
-HALO_PATTERN="${HALO_PATTERN:-plc_shell_thetaphizmass_z*.npz}"   # auto-skips *_tidal_proxy.npz in the .py
-GALAXY_ROOT="${GALAXY_ROOT:-${PIN_DIR}/outputs_particle}"
+HALO_PATTERN="${HALO_PATTERN:-plc_shell_*.npz}"   # auto-skips *_tidal_proxy.npz in the .py
+GALAXY_ROOT="${GALAXY_ROOT:-${PIN_DIR}/outputs_particles}"
 
 OUT_DIR_FULL="${OUT_DIR}/richness_global"
 mkdir -p "${OUT_DIR_FULL}"
@@ -81,23 +81,23 @@ M_THRESHOLD="${M_THRESHOLD:-1e13}"
 # Optional: disable tqdm bars (0/1)
 NO_PROGRESS="${NO_PROGRESS:-0}"
 
-echo -e "\033[32m[Job]\033[0m PIN_DIR               = ${PIN_DIR}"
-echo -e "\033[32m[Job]\033[0m PARAM_PATH            = ${PARAM_PATH}"
-echo -e "\033[32m[Job]\033[0m PY_SCRIPT             = ${PY_SCRIPT}"
-echo -e "\033[32m[Job]\033[0m HALO_ROOT             = ${HALO_ROOT}"
-echo -e "\033[32m[Job]\033[0m HALO_PATTERN          = ${HALO_PATTERN}"
-echo -e "\033[32m[Job]\033[0m GALAXY_ROOT           = ${GALAXY_ROOT}"
-echo -e "\033[32m[Job]\033[0m OUT_HALO_NPZ          = ${OUT_HALO_NPZ}"
-echo -e "\033[32m[Job]\033[0m OUT_GAL_NPZ           = ${OUT_GAL_NPZ}"
-echo -e "\033[32m[Job]\033[0m Z_MAX_SHELL           = ${Z_MAX_SHELL}"
-echo -e "\033[32m[Job]\033[0m M_THRESHOLD           = ${M_THRESHOLD}"
-echo -e "\033[32m[Job]\033[0m PROCS                 = ${PROCS}"
-echo -e "\033[32m[Job]\033[0m LAMBDA_NUM_WORKERS    = ${LAMBDA_NUM_WORKERS}"
-echo -e "\033[32m[Job]\033[0m PMEM_MODEL_PATH       = ${PMEM_MODEL_PATH}"
+echo -e "\033[32m[Job]\033[0m PIN_DIR ............. = ${PIN_DIR}"
+echo -e "\033[32m[Job]\033[0m PARAM_PATH .......... = ${PARAM_PATH}"
+echo -e "\033[32m[Job]\033[0m PY_SCRIPT ........... = ${PY_SCRIPT}"
+echo -e "\033[32m[Job]\033[0m HALO_ROOT ........... = ${HALO_ROOT}"
+echo -e "\033[32m[Job]\033[0m HALO_PATTERN ........ = ${HALO_PATTERN}"
+echo -e "\033[32m[Job]\033[0m GALAXY_ROOT ......... = ${GALAXY_ROOT}"
+echo -e "\033[32m[Job]\033[0m OUT_HALO_NPZ ........ = ${OUT_HALO_NPZ}"
+echo -e "\033[32m[Job]\033[0m OUT_GAL_NPZ ......... = ${OUT_GAL_NPZ}"
+echo -e "\033[32m[Job]\033[0m Z_MAX_SHELL ......... = ${Z_MAX_SHELL}"
+echo -e "\033[32m[Job]\033[0m M_THRESHOLD ......... = ${M_THRESHOLD}"
+echo -e "\033[32m[Job]\033[0m PROCS ............... = ${PROCS}"
+echo -e "\033[32m[Job]\033[0m LAMBDA_NUM_WORKERS .. = ${LAMBDA_NUM_WORKERS}"
+echo -e "\033[32m[Job]\033[0m PMEM_MODEL_PATH ..... = ${PMEM_MODEL_PATH}"
 echo -e "\033[32m[Job]\033[0m PMEM_MAJOR_THRESHOLD  = ${PMEM_MAJOR_THRESHOLD}"
-echo -e "\033[32m[Job]\033[0m NO_PROGRESS           = ${NO_PROGRESS}"
-echo -e "\033[32m[Job]\033[0m PYTHON				  = $(which python)"
-echo -e "\033[32m[Job]\033[0m PYTHON VERSION        = $(python -V)"
+echo -e "\033[32m[Job]\033[0m NO_PROGRESS ......... = ${NO_PROGRESS}"
+echo -e "\033[32m[Job]\033[0m PYTHON ..............	= $(which python)"
+echo -e "\033[32m[Job]\033[0m PYTHON VERSION ...... = $(python -V)"
 echo -e "\033[32m[Job]\033[0m Note: f_bkg uses fixed annulus 3-5 cMpc/h inside compute_richness_merged.py"
 
 # ----------------------------

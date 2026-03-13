@@ -47,7 +47,7 @@ source $HOME/dott/envs/cosmopostprocess/bin/activate
 # If MODE is unset, defaults to map.
 #
 # Optional high-res halo painting (MAP mode only):
-#   sbatch --export=MODE=map,HALO_NSIDE=4096 run_pinocchio_module1.sbatch
+#   sbatch --export=MODE=map,HALO_NSIDE=4096 run_cosmopost_painting.sh
 # ----------------------------
 MODE="${MODE:-map}"                # "map" or "particles"
 DISABLE_BARY="${DISABLE_BARY:-0}"  # 1 => pass --disable-baryonification (map mode only)
@@ -81,20 +81,27 @@ DATA_SET="${DATA_SET:-elb}"
 
 # EuclidLargeMocks:
 if [[ "$DATA_SET" == "elb" ]]; then
+	HALO_PATTERN="plc_shell_thetaphizmass_"
 	NPZ_NAMES=(
-	  "plc_shell_thetaphizmass_z0.000_0.100.npz"  "plc_shell_thetaphizmass_z0.100_0.200.npz"  "plc_shell_thetaphizmass_z0.200_0.300.npz"  "plc_shell_thetaphizmass_z0.300_0.400.npz"  "plc_shell_thetaphizmass_z0.400_0.500.npz"
-	  "plc_shell_thetaphizmass_z0.500_0.600.npz"  "plc_shell_thetaphizmass_z0.600_0.700.npz"  "plc_shell_thetaphizmass_z0.700_0.800.npz"  "plc_shell_thetaphizmass_z0.800_0.900.npz"  "plc_shell_thetaphizmass_z0.900_1.000.npz"
-	  "plc_shell_thetaphizmass_z1.000_1.200.npz"  "plc_shell_thetaphizmass_z1.200_1.400.npz"  "plc_shell_thetaphizmass_z1.400_1.600.npz"  "plc_shell_thetaphizmass_z1.600_1.800.npz"  "plc_shell_thetaphizmass_z1.800_2.000.npz"
-	  "plc_shell_thetaphizmass_z2.000_2.200.npz"  "plc_shell_thetaphizmass_z2.200_2.400.npz"  "plc_shell_thetaphizmass_z2.400_2.600.npz"  "plc_shell_thetaphizmass_z2.600_2.800.npz"  "plc_shell_thetaphizmass_z2.800_3.000.npz"
-	  "plc_shell_thetaphizmass_z3.000_3.200.npz"  "plc_shell_thetaphizmass_z3.200_3.400.npz"  "plc_shell_thetaphizmass_z3.400_3.600.npz"  "plc_shell_thetaphizmass_z3.600_3.800.npz"  "plc_shell_thetaphizmass_z3.800_4.000.npz"
+	  "${HALO_PATTERN}z0.000_0.100.npz"  "${HALO_PATTERN}z0.100_0.200.npz"  "${HALO_PATTERN}z0.200_0.300.npz"  "${HALO_PATTERN}z0.300_0.400.npz"  "${HALO_PATTERN}z0.400_0.500.npz"
+	  "${HALO_PATTERN}z0.500_0.600.npz"  "${HALO_PATTERN}z0.600_0.700.npz"  "${HALO_PATTERN}z0.700_0.800.npz"  "${HALO_PATTERN}z0.800_0.900.npz"  "${HALO_PATTERN}z0.900_1.000.npz"
+	  "${HALO_PATTERN}z1.000_1.200.npz"  "${HALO_PATTERN}z1.200_1.400.npz"  "${HALO_PATTERN}z1.400_1.600.npz"  "${HALO_PATTERN}z1.600_1.800.npz"  "${HALO_PATTERN}z1.800_2.000.npz"
+	  "${HALO_PATTERN}z2.000_2.200.npz"  "${HALO_PATTERN}z2.200_2.400.npz"  "${HALO_PATTERN}z2.400_2.600.npz"  "${HALO_PATTERN}z2.600_2.800.npz"  "${HALO_PATTERN}z2.800_3.000.npz"
+	  "${HALO_PATTERN}z3.000_3.200.npz"  "${HALO_PATTERN}z3.200_3.400.npz"  "${HALO_PATTERN}z3.400_3.600.npz"  "${HALO_PATTERN}z3.600_3.800.npz"  "${HALO_PATTERN}z3.800_4.000.npz"
 	)
 
 # NewClusterMocksSobol:
 elif [[ "$DATA_SET" == "ncms" ]]; then
+	HALO_PATTERN="plc_shell_"
 	NPZ_NAMES=(
-	  "plc_shell_thetaphizmass_z0.000_0.100.npz"  "plc_shell_thetaphizmass_z0.100_0.200.npz"  "plc_shell_thetaphizmass_z0.200_0.300.npz"  "plc_shell_thetaphizmass_z0.300_0.400.npz"  "plc_shell_thetaphizmass_z0.400_0.500.npz"
-	  "plc_shell_thetaphizmass_z0.500_0.600.npz"  "plc_shell_thetaphizmass_z0.600_0.700.npz"  "plc_shell_thetaphizmass_z0.700_0.800.npz"  "plc_shell_thetaphizmass_z0.800_0.900.npz"  "plc_shell_thetaphizmass_z0.900_1.000.npz"
-	  "plc_shell_thetaphizmass_z1.000_1.200.npz"  "plc_shell_thetaphizmass_z1.200_1.400.npz"  "plc_shell_thetaphizmass_z1.400_1.600.npz"  "plc_shell_thetaphizmass_z1.600_1.800.npz"  "plc_shell_thetaphizmass_z1.800_2.000.npz"
+		"${HALO_PATTERN}z0.0000_0.0336.npz" "${HALO_PATTERN}z0.0336_0.0678.npz" "${HALO_PATTERN}z0.0678_0.1026.npz" "${HALO_PATTERN}z0.1026_0.1380.npz" 
+		"${HALO_PATTERN}z0.1380_0.1740.npz" "${HALO_PATTERN}z0.1740_0.2108.npz" "${HALO_PATTERN}z0.2108_0.2484.npz" "${HALO_PATTERN}z0.2484_0.2867.npz"
+		"${HALO_PATTERN}z0.2867_0.3260.npz" "${HALO_PATTERN}z0.3260_0.3661.npz" "${HALO_PATTERN}z0.3661_0.4072.npz" "${HALO_PATTERN}z0.4072_0.4493.npz"
+		"${HALO_PATTERN}z0.4493_0.4926.npz" "${HALO_PATTERN}z0.4926_0.5369.npz" "${HALO_PATTERN}z0.5369_0.5826.npz" "${HALO_PATTERN}z0.5826_0.6295.npz"
+		"${HALO_PATTERN}z0.6295_0.6778.npz" "${HALO_PATTERN}z0.6778_0.7275.npz" "${HALO_PATTERN}z0.7275_0.7788.npz" "${HALO_PATTERN}z0.7788_0.8318.npz"
+		"${HALO_PATTERN}z0.8318_0.8865.npz" "${HALO_PATTERN}z0.8865_0.9430.npz" "${HALO_PATTERN}z0.9430_1.0000.npz" "${HALO_PATTERN}z1.0000_1.2559.npz"
+		"${HALO_PATTERN}z1.2559_1.3992.npz" "${HALO_PATTERN}z1.3992_1.5544.npz" "${HALO_PATTERN}z1.5544_1.7232.npz" "${HALO_PATTERN}z1.7232_1.9074.npz"
+		"${HALO_PATTERN}z1.9074_2.0000.npz"
 	)
 else
 	echo "[ERROR] $DATA_SET is not a valid data set type"
@@ -112,23 +119,27 @@ SEG3=$(printf "%03d" "${SEG}")
 MASSMAP_FILE="${PIN_DIR}/pinocchio.${RUN_MODEL}.massmap.seg${SEG3}.fits"
 
 # Output tag from filename
-TAG="$(echo "${NPZ_NAME}" | sed -E 's/^plc_shell_thetaphizmass_//; s/\.npz$//')"
+TAG="${NPZ_NAME#${HALO_PATTERN}}"
+TAG="${TAG%.npz}"
 OUTBASE="outputs_${MODE}"
 OUTDIR_REL="${OUTBASE}/${TAG}"          # RELATIVE on purpose (python joins with --base-outdir)
 OUTDIR_FULL="${OUT_DIR}/${OUTDIR_REL}"
 
 mkdir -p "${OUTDIR_FULL}"
 
-echo -e "\033[32m[Job]\033[0m MODE					  = ${MODE}"
-echo -e "\033[32m[Job]\033[0m DISABLE_BARY			  = ${DISABLE_BARY}"
-echo -e "\033[32m[Job]\033[0m HALO_NSIDE			  = ${HALO_NSIDE:-<base>}"
-echo -e "\033[32m[Job]\033[0m TASK_ID				  = ${TASK_ID}"
-echo -e "\033[32m[Job]\033[0m NPZ					  = ${NPZ_NAME}"
-echo -e "\033[32m[Job]\033[0m SEG					  = ${SEG3}"
-echo -e "\033[32m[Job]\033[0m MAP					  = $(basename "${MASSMAP_FILE}")"
-echo -e "\033[32m[Job]\033[0m OUTDIR				  = ${OUTDIR_FULL}"
-echo -e "\033[32m[Job]\033[0m PYTHON				  = $(which python)"
-echo -e "\033[32m[Job]\033[0m PYTHON VERSION		  = $(python -V)"
+echo -e "\033[32m[Job]\033[0m PIN_DIR ............... = ${PIN_DIR}"
+echo -e "\033[32m[Job]\033[0m PARAM_FILE ............ = ${PARAM_PATH}"
+echo -e "\033[32m[Job]\033[0m DATA_SET .............. = ${DATA_SET}"
+echo -e "\033[32m[Job]\033[0m MODE .................. = ${MODE}"
+echo -e "\033[32m[Job]\033[0m DISABLE_BARY .......... = ${DISABLE_BARY}"
+echo -e "\033[32m[Job]\033[0m HALO_NSIDE ............ = ${HALO_NSIDE:-<base>}"
+echo -e "\033[32m[Job]\033[0m TASK_ID ............... = ${TASK_ID}"
+echo -e "\033[32m[Job]\033[0m NPZ ................... = ${NPZ_NAME}"
+echo -e "\033[32m[Job]\033[0m SEG ................... = ${SEG3}"
+echo -e "\033[32m[Job]\033[0m MAP ................... = $(basename "${MASSMAP_FILE}")"
+echo -e "\033[32m[Job]\033[0m OUTDIR ................ = ${OUTDIR_FULL}"
+echo -e "\033[32m[Job]\033[0m PYTHON ................ = $(which python)"
+echo -e "\033[32m[Job]\033[0m PYTHON VERSION ........ = $(python -V)"
 
 # ----------------------------
 # User parameters (edit once here)
