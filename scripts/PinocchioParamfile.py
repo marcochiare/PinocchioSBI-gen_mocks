@@ -199,9 +199,10 @@ class params_file(object):
         return self.default_params['group1']['PARAM']
 
     def __repr__(self):
-
-        KEY_WIDTH = 35
-        COMM_WIDTH = 50
+        
+        MAX_LINE_LENGTH = 99
+        KEY_WIDTH = 23
+        COMM_WIDTH = 38
 
         if self.no_header:
 
@@ -233,19 +234,27 @@ class params_file(object):
 
                 if 'DISABLE' in str(val):
                     if isinstance(val, (list, tuple)):
-                        base = f'%{key:<{KEY_WIDTH - 1}}{val[1]}'
+                        base = f'%{key:<{KEY_WIDTH - 1}} {val[1]}'
 
                     else:
                         base = f'%{key:<{KEY_WIDTH - 1}}'
 
                 else:
-                    base = f'{key:<{KEY_WIDTH}}{val}'
+                    base = f'{key:<{KEY_WIDTH}} {val}'
                 
                 comm = comms_dict.get(key)
                 
                 if comm:
-                    base = base.ljust(COMM_WIDTH) + f' % {comm}'
-            
+                    tmp_base = base.ljust(COMM_WIDTH) + f' % {comm}'
+
+                    if len(tmp_base) <= MAX_LINE_LENGTH:
+                        base = tmp_base
+                
+                if len(base) > MAX_LINE_LENGTH:
+                    raise ValueError(
+                            f'Line corresponding to the flag "{key}" exceeds the allowed value ({MAX_LINE_LENGTH}). Got {len(base)}.'
+                            )
+
                 text += base + '\n'
 
             text += '\n'
