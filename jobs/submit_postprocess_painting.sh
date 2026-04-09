@@ -15,6 +15,10 @@
 # ============================================ #
 # This script is used to sbatch multiple jobs
 # that post-process the PINOCCHIO runs.
+#
+# Make sure to send a valid number of jobs
+# according to the QoS policy of your HPC
+# cluster.
 # ============================================ #
 
 # ============================================ #
@@ -63,6 +67,7 @@ declare -A WHICH_NUM_SHELLS=(
 	["elb"]=24
 )
 NUM_SHELLS="${WHICH_NUM_SHELLS[$DATA_SET]}"
+EFF_NUM_SHELLS="$((NUM_SHELLS-1))"
 
 if [[ -z "$NUM_SHELLS" ]]; then
     echo "Wrong DATA_SET value: $DATA_SET"
@@ -99,10 +104,12 @@ for ((m=$N_START; m<$N_END; m++)); do
 	)
 	EXPORTS_STR=$(IFS=,; echo "${EXPORTS[*]}")
 
+	echo -e "\033[32m[JOB]\033[0m Submitting job for model: ${RUN_MODEL}"
+
 	sbatch \
 		--job-name=painting_${RUN_MODEL} \
 		--output=../logs/painting/${RUN_MODEL}/slurm-%x_%A_%a.out \
-		--array=0-$NUM_SHELLS%$NUM_SHELLS \
+		--array=0-$EFF_NUM_SHELLS%$EFF_NUM_SHELLS \
 		--export="$EXPORTS_STR" \
 		"${BASH_SCRIPT}"
 	
