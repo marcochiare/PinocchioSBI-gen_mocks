@@ -1,15 +1,15 @@
 #!/bin/bash
-#SBATCH --account=
-#SBATCH --partition=boost_usr_prod
-#SBATCH --qos=boost_qos_lprod
-#SBATCH --time=2:00:00
-#SBATCH --nodes=32
-#SBATCH --ntasks=512
-#SBATCH --ntasks-per-node=16
+#SBATCH --account=CMPNS_units
+#SBATCH --partition=dcgp_usr_prod
+#SBATCH --qos=normal
+#SBATCH --time=1:30:00
+#SBATCH --nodes=15
+#SBATCH --ntasks-per-node=48
 #SBATCH --cpus-per-task=2
+#SBATCH --mem=0
 #SBATCH --job-name=run_pinocchio
 #SBATCH --array=0-10%2
-#SBATCH --output=../logs/runs/%A/slurm-%x_%a.out
+#SBATCH --output=../logs/runs/$x_%A/slurm-%x_%a.out
 
 # PLEASE, SBATCH THIS FILE FROM INSIDE jobs/
 # (otherwise it will not work as intended)
@@ -38,13 +38,13 @@ set -euo pipefail
 # PATHS & NAMES
 # 
 # Expected structure:
-# {MAIN_DIR}/{RUN_BASENAME}_{ID}/{PARAMFILE}
-# {MAIN_DIR}/{STATUSNAMEFILE}
+# {RUNS_DIR}/{RUN_BASENAME}_{ID}/{PARAMFILE}
+# {RUNS_DIR}/{STATUSNAMEFILE}
 #
 # ====================== #
 
-# Directory containing all setupped runs
-MAIN_DIR="${MAIN_DIR:-$WORK}"
+# Directory containing all setup runs
+RUNS_DIR="${RUNS_DIR:-$WORK}"
 
 # Base name for the Pinocchio run --> (base_name)_(id)
 RUN_BASENAME="${RUN_BASENAME:-model}"
@@ -55,14 +55,14 @@ EXEC="${EXEC:-pinocchio.x}"
 # Combine base_name and directory (NO NEED TO CHANGE)
 ID="$SLURM_ARRAY_TASK_ID"
 RUN_NAME="${RUN_BASENAME}_${SLURM_ARRAY_TASK_ID}"
-SIM_DIR="$MAIN_DIR/$RUN_NAME"
+SIM_DIR="$RUNS_DIR/$RUN_NAME"
 
 # How the parameter file is named in each run directory
 PARAMFILE="${PARAMFILE:-parameter_file_$RUN_NAME}"
 
 # Name of the status file
 STATUSNAMEFILE="${STATUSNAMEFILE:-status.txt}"
-STATUSFILE="$MAIN_DIR/$STATUSNAMEFILE"
+STATUSFILE="$RUNS_DIR/$STATUSNAMEFILE"
 
 # ====================== #
 # PRINTS
@@ -70,15 +70,17 @@ STATUSFILE="$MAIN_DIR/$STATUSNAMEFILE"
 
 echo -e "\033[32m[JOB]\033[0m ${SLURM_ARRAY_JOB_ID}_${ID}"
 echo -e "\033[32m[JOB]\033[0m $(date +"%Y-%m-%d %H:%M:%S")"
-echo -e "\033[32m[JOB]\033[0m MAIN_DIR ........... = ${MAIN_DIR}" 
+echo -e "\033[32m[JOB]\033[0m RUNS_DIR ........... = ${RUNS_DIR}" 
 echo -e "\033[32m[JOB]\033[0m RUN_NAME ........... = ${RUN_NAME}" 
 echo -e "\033[32m[JOB]\033[0m PARAMFILE .......... = ${PARAMFILE}" 
 echo -e "\033[32m[JOB]\033[0m .................... " 
 echo -e "\033[32m[JOB]\033[0m PINOCCHIO .......... = ${EXEC}" 
+echo -e "\033[32m[JOB]\033[0m SYSTEM ............. = ${SLURM_PARTITION}" 
 echo -e "\033[32m[JOB]\033[0m NODES .............. = ${SLURM_JOB_NUM_NODES}"
 echo -e "\033[32m[JOB]\033[0m TOTAL TASKS ........ = ${SLURM_NTASKS}"
 echo -e "\033[32m[JOB]\033[0m NTASKS-per-NODE .... = ${SLURM_NTASKS_PER_NODE}"
 echo -e "\033[32m[JOB]\033[0m CPUS-per-TASK ...... = ${SLURM_CPUS_PER_TASK}"
+echo -e "\033[32m[JOB]\033[0m NODELIST ........... = ${SLURM_NODELIST}"
 
 # ====================== #
 # CHECKS

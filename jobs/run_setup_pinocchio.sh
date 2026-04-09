@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=
+#SBATCH --account=CNHPC_1498509
 #SBATCH --partition=boost_usr_prod
 #SBATCH --qos=boost_qos_lprod
 #SBATCH --time=1:00:00
@@ -21,14 +21,14 @@ export PYTHONUNBUFFERED=1
 
 module load python/3.10.8--gcc--8.5.0
 
-source $HOME/dott/env/gen_mocks/bin/activate
+source $HOME/dott/envs/cosmopostprocess/bin/activate
 
 # ====================== #
 # PATHS & NAMES
 # ====================== #
 
 # Where to setup the runs
-MAIN_DIR="${MAIN_DIR:-$HOME/dott/runs}"
+RUNS_DIR="${RUNS_DIR:-$HOME/dott/runs}"
 
 # python script to run
 PY_SCRIPT="${PY_SCRIPT:-../scripts/setup_runs_parser.py}"
@@ -101,7 +101,7 @@ Z_SNAP=(
 # DO NOT ADD SPACES!!
 SETUP=(
 	BoxSize=3870.
-	GridSize=2160
+	GridSize=4320
 	OmegaBaryon=0.049
 	PrimordialIndex=0.96
 	StartingzForPLC=2.0
@@ -111,9 +111,9 @@ SETUP=(
 	PLCCenter='DISABLE'
 	PLCAxis='DISABLE'
 	CatalogInAscii='DISABLE'
-	MinHaloMass=10
+	MinHaloMass=80
 	BoundaryLayerFactor=2.5
-	MaxMem=31000
+	MaxMem=8400
 	MaxMemPerParticle=350
 	PredPeakFactor=1.0
 	seed=115
@@ -128,7 +128,7 @@ SETUP=(
 
 echo -e "\033[32m[JOB]\033[0m ${SLURM_JOB_ID}"
 echo -e "\033[32m[JOB]\033[0m $(date +"%Y-%m-%d %H:%M:%S")"
-echo -e "\033[32m[JOB]\033[0m MAIN_DIR ........... = ${MAIN_DIR}"
+echo -e "\033[32m[JOB]\033[0m RUNS_DIR ........... = ${RUNS_DIR}"
 echo -e "\033[32m[JOB]\033[0m RUN_NAME ........... = ${RUN_BASENAME}"
 echo -e "\033[32m[JOB]\033[0m TOT_RUNS ........... = ${TOT_RUNS}"
 echo -e "\033[32m[JOB]\033[0m COSMO_FILE ......... = ${COSMO_FILE}"
@@ -145,7 +145,7 @@ echo -e "\033[32m[JOB]\033[0m SCRIPT ............. = ${PY_SCRIPT}"
 # ====================== #
 
 ARGS=(
-	--main-dir "${MAIN_DIR}"	
+	--main-dir "${RUNS_DIR}"	
 	--base-name "${RUN_BASENAME}"
 	--cosmo-file "${COSMO_FILE}"
 	--total-runs "${TOT_RUNS}"
