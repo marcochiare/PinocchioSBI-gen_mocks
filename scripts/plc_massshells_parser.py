@@ -41,12 +41,6 @@ if __name__ == '__main__':
     
     if not os.path.isfile(output_path):
         raise FileNotFoundError(f'{output_path} not found')
-
-    if os.path.isfile(plc_path + '.0'):
-        raise NotImplementedError('Please provide one-file only PLC')
-
-    if not os.path.isfile(plc_path):
-        raise FileNotFoundError(f'pinocchio.{run_name}.plc.out not found in {args.pin_dir}')
  
     Z = np.loadtxt(output_path)
     Z = np.sort(Z) # just to be safe, shouldn't be necessary
