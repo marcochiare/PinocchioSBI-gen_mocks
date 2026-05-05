@@ -88,6 +88,8 @@ for ((m=$N_START; m<$N_END; m++)); do
 	)
 	EXPORTS_STR=$(IFS=,; echo "${EXPORTS[*]}")
 	
+	echo -e "\033[32m[JOB]\033[0m Submitting job for model: ${RUN_MODEL}"
+
 	sbatch \
 		--job-name=richness_${RUN_MODEL} \
 		--output=../logs/richness/slurm-%x_%j.out \

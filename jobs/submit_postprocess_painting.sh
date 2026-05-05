@@ -25,6 +25,7 @@
 # NUMBER OF PINOCCHIO TO POST-PROCESS
 #
 # ncms: NewClusterMocksSobol
+# ncms_ms: NewClusterMocksSobol_MassShells
 # elb: EuclidLargeBox
 # ============================================ #
 
@@ -63,7 +64,8 @@ MODE="${MODE:-particles}"
 BASH_SCRIPT="run_cosmopost_painting.sh"
 
 declare -A WHICH_NUM_SHELLS=(
-	["ncms"]=29
+	["ncms"]=20
+	["ncms_ms"]=29
 	["elb"]=24
 )
 NUM_SHELLS="${WHICH_NUM_SHELLS[$DATA_SET]}"

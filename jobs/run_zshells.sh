@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=
+#SBATCH --account=CNHPC_1498509
 #SBATCH --partition=boost_usr_prod
 #SBATCH --qos=boost_qos_lprod
 #SBATCH --time=0:10:00
@@ -27,13 +27,13 @@ set -euo pipefail
 # PATHS & NAMES
 # 
 # Expected structure:
-# {MAIN_DIR}/{RUN_BASENAME}_{ID}/{PARAMFILE}
-# {MAIN_DIR}/{STATUSNAMEFILE}
+# {RUNS_DIR}/{RUN_BASENAME}_{ID}/{PARAMFILE}
+# {RUNS_DIR}/{STATUSNAMEFILE}
 #
 # ====================== #
 
 # Directory containing all setup runs
-MAIN_DIR="${MAIN_DIR:-$WORK}"
+RUNS_DIR="${RUNS_DIR:-$WORK}"
 
 # Base name for the Pinocchio run --> (base_name)_(id)
 RUN_BASENAME="${RUN_BASENAME:-model}"
@@ -50,14 +50,17 @@ PY_SCRIPT="${PY_SCRIPT:-../scripts/plc_massshells_parser.py}"
 # Combine base_name and directory (NO NEED TO CHANGE)
 ID="$SLURM_ARRAY_TASK_ID"
 RUN_NAME="${RUN_BASENAME}_${SLURM_ARRAY_TASK_ID}"
-SIM_DIR="$MAIN_DIR/$RUN_NAME"
+SIM_DIR="$RUNS_DIR/$RUN_NAME"
 
 # How the parameter file is named in each run directory
 PARAMFILE="${PARAMFILE:-parameter_file_$RUN_NAME}"
 
+# How the file containing the redshift shells in named in each run directory
+SHELLSFILE="${SHELLSFILE:-outputs_shells}"
+
 # Name of the status file
 STATUSNAMEFILE="${STATUSNAMEFILE:-status.txt}"
-STATUSFILE="$MAIN_DIR/$STATUSNAMEFILE"
+STATUSFILE="$RUNS_DIR/$STATUSNAMEFILE"
 
 # ====================== #
 # PRINTS
@@ -65,9 +68,10 @@ STATUSFILE="$MAIN_DIR/$STATUSNAMEFILE"
 
 echo -e "\033[32m[JOB]\033[0m ${SLURM_ARRAY_JOB_ID}_${ID}"
 echo -e "\033[32m[JOB]\033[0m $(date +"%Y-%m-%d %H:%M:%S")"
-echo -e "\033[32m[JOB]\033[0m MAIN_DIR ........... = ${MAIN_DIR}" 
+echo -e "\033[32m[JOB]\033[0m RUNS_DIR ........... = ${RUNS_DIR}" 
 echo -e "\033[32m[JOB]\033[0m RUN_NAME ........... = ${RUN_NAME}" 
 echo -e "\033[32m[JOB]\033[0m PARAMFILE .......... = ${PARAMFILE}" 
+echo -e "\033[32m[JOB]\033[0m SHELLSFILE ......... = ${SHELLSFILE}" 
 echo -e "\033[32m[JOB]\033[0m PREFIX ............. = ${PREFIX}" 
 echo -e "\033[32m[JOB]\033[0m USE_TRUEZ .......... = ${USE_TRUEZ}" 
 echo -e "\033[32m[JOB]\033[0m .................... " 
@@ -106,6 +110,7 @@ echo -e "\033[32m[JOB $(date +"%H:%M:%S")]\033[0m Running $RUN_NAME"
 ARGS=(
 	--pin-dir "${SIM_DIR}"
 	--param-file "${SIM_DIR}/${PARAMFILE}"
+	--shells-file "${SIM_DIR}/${SHELLSFILE}"
 	--out-prefix "${PREFIX}"
 )
 

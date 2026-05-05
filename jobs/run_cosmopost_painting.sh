@@ -1,12 +1,12 @@
 #!/bin/bash -l
-#SBATCH --account=iscrc_graphmls
+#SBATCH --account=CNHPC_1498509
 #SBATCH --partition=boost_usr_prod
 #SBATCH --qos=boost_qos_lprod
-#SBATCH --time=2:00:00
+#SBATCH --time=0:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=0
+#SBATCH --mem=36G
 #SBATCH --job-name=pin_shells
 #SBATCH --array=0-24%24
 #SBATCH --output=../logs/painting/slurm-%x_%A_%a.out
@@ -15,6 +15,9 @@
 # (otherwise it will not work as intended)
 
 set -euo pipefail
+
+# to prevent srun failing when 
+unset SLURM_MEM_PER_CPU
 
 # ----------------------------
 # Threading: keep libs single-threaded inside each multiprocessing worker
@@ -80,7 +83,7 @@ STATUSFILE="${STATUSFILE:-}"
 # ----------------------------
 
 # Which shell catalogue list to use
-DATA_SET="${DATA_SET:-elb}"
+DATA_SET="${DATA_SET:-ncms}"
 
 # EuclidLargeMocks:
 if [[ "$DATA_SET" == "elb" ]]; then
@@ -93,8 +96,8 @@ if [[ "$DATA_SET" == "elb" ]]; then
 	  "${HALO_PATTERN}z3.000_3.200.npz"  "${HALO_PATTERN}z3.200_3.400.npz"  "${HALO_PATTERN}z3.400_3.600.npz"  "${HALO_PATTERN}z3.600_3.800.npz"  "${HALO_PATTERN}z3.800_4.000.npz"
 	)
 
-# NewClusterMocksSobol:
-elif [[ "$DATA_SET" == "ncms" ]]; then
+# NewClusterMocksSobol_MassShells:
+elif [[ "$DATA_SET" == "ncms_ms" ]]; then
 	HALO_PATTERN="plc_shell_"
 	NPZ_NAMES=(
 		"${HALO_PATTERN}z0.0000_0.0336.npz" "${HALO_PATTERN}z0.0336_0.0678.npz" "${HALO_PATTERN}z0.0678_0.1026.npz" "${HALO_PATTERN}z0.1026_0.1380.npz" 
@@ -106,6 +109,17 @@ elif [[ "$DATA_SET" == "ncms" ]]; then
 		"${HALO_PATTERN}z1.2559_1.3992.npz" "${HALO_PATTERN}z1.3992_1.5544.npz" "${HALO_PATTERN}z1.5544_1.7232.npz" "${HALO_PATTERN}z1.7232_1.9074.npz"
 		"${HALO_PATTERN}z1.9074_2.0000.npz"
 	)
+
+# NewClusterMocksSobol:
+elif [[ "$DATA_SET" == "ncms" ]]; then
+	HALO_PATTERN="plc_shell_"
+	NPZ_NAMES=(
+	  "${HALO_PATTERN}z0.000_0.100.npz"  "${HALO_PATTERN}z0.100_0.200.npz"  "${HALO_PATTERN}z0.200_0.300.npz"  "${HALO_PATTERN}z0.300_0.400.npz"  "${HALO_PATTERN}z0.400_0.500.npz"
+	  "${HALO_PATTERN}z0.500_0.600.npz"  "${HALO_PATTERN}z0.600_0.700.npz"  "${HALO_PATTERN}z0.700_0.800.npz"  "${HALO_PATTERN}z0.800_0.900.npz"  "${HALO_PATTERN}z0.900_1.000.npz"
+	  "${HALO_PATTERN}z1.000_1.100.npz"  "${HALO_PATTERN}z1.100_1.200.npz"  "${HALO_PATTERN}z1.200_1.300.npz"  "${HALO_PATTERN}z1.300_1.400.npz"  "${HALO_PATTERN}z1.400_1.500.npz"
+	  "${HALO_PATTERN}z1.500_1.600.npz"  "${HALO_PATTERN}z1.600_1.700.npz"  "${HALO_PATTERN}z1.700_1.800.npz"  "${HALO_PATTERN}z1.800_1.900.npz"  "${HALO_PATTERN}z1.900_2.000.npz"
+	)
+
 else
 	echo "[ERROR] $DATA_SET is not a valid data set type"
 	exit 1
@@ -197,13 +211,14 @@ fi
 # ----------------------------
 if [[ -n "$STATUSFILE" ]]; then
 
-	# Check that status in STATUSFILE is "zshells-done" or "painting-FAILED" before starting
-	CURRENT_STATUS=$(sed -n "s/^$RUN_MODEL\s\+//p" "$STATUSFILE")
+	## commented out to prevent "painting-done" to make the task fail
+	## Check that status in STATUSFILE is "zshells-done", "painting" or "painting-FAILED" before starting
+	#CURRENT_STATUS=$(sed -n "s/^$RUN_MODEL\s\+//p" "$STATUSFILE")
 
-	if [[ ! "$CURRENT_STATUS" =~ ^(zshells-done|painting-FAILED)$ ]]; then
-		echo -e "\033[31m[ERR]\033[0m $RUN_MODEL has an invalid status. Found $CURRENT_STATUS."
-		exit 1
-	fi
+	#if [[ ! "$CURRENT_STATUS" =~ ^(zshells-done|painting(-FAILED)?)$ ]]; then
+	#	echo -e "\033[31m[ERR]\033[0m $RUN_MODEL has an invalid status. Found $CURRENT_STATUS."
+	#	exit 1
+	#fi
 
 	# Update the status in STATUSFILE with "painting"
 	STATUS="painting"
@@ -235,7 +250,13 @@ srun python -u "${PY_SCRIPT}" \
 if [[ -n "$STATUSFILE" ]]; then
 
 	# Update the status in STATUSFILE based on the exit code
-	sed -i "s/^\($RUN_NAME\s\+\).*/\1$STATUS/" "$STATUSFILE"
+	#
+	# NB: if one task fails and the next one does not, it will
+	# appear as "done" so not correctly reporting the error.
+	# At the same time, we need to overwrite the "failed" status
+	# automatically when recomputing
+	# This bug needs to be fixed.
+	sed -i "s/^\($RUN_MODEL\s\+\).*/\1$STATUS/" "$STATUSFILE"
 
 	if [[ "$STATUS" == "painting-FAILED" ]]; then
 		echo -e "\033[31m[ERR]\033[0m The painting of the PLC has failed."

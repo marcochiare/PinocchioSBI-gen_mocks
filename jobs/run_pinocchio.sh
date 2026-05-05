@@ -59,6 +59,7 @@ SIM_DIR="$RUNS_DIR/$RUN_NAME"
 
 # How the parameter file is named in each run directory
 PARAMFILE="${PARAMFILE:-parameter_file_$RUN_NAME}"
+IC_PARAMFILE="${IC_PARAMFILE:$PARAMFILE_IC}"
 
 # Name of the status file
 STATUSNAMEFILE="${STATUSNAMEFILE:-status.txt}"
@@ -119,8 +120,14 @@ LOG_FILE="pinocchio_$RUN_NAME.log"
 STATUS="running"
 sed -i "s/^\($RUN_NAME\s\+\).*/\1$STATUS/" "$STATUSFILE"
 
+# MAIN RUN
 echo -e "\033[32m[JOB $(date +"%H:%M:%S")]\033[0m mpirun -n $MPI_PROCS $EXEC $PARAMFILE > $LOG_FILE"
 mpirun -n $MPI_PROCS $EXEC $PARAMFILE > $LOG_FILE && STATUS="done" || STATUS="FAILED"
+
+# IC run
+LOG_FILE="pinocchio_${RUN_NAME}_IC.log"
+echo -e "\033[32m[JOB $(date +"%H:%M:%S")]\033[0m mpirun -n $MPI_PROCS $EXEC $PARAMFILE > $LOG_FILE"
+mpirun -n $MPI_PROCS $EXEC $IC_PARAMFILE 3 > $LOG_FILE 
 
 # Update the status in STATUSFILE based on the exit code
 sed -i "s/^\($RUN_NAME\s\+\).*/\1$STATUS/" "$STATUSFILE"

@@ -25,6 +25,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--pin-dir', type=str, required=True) 
     parser.add_argument('--param-file', type=str, required=True)
+    parser.add_argument('--shells-file', type=str, required=True)
     parser.add_argument('--out-prefix', type=str, required=True) 
     parser.add_argument('--use-truez', action='store_true')
     parser.add_argument('--ext', type=str, default='.npz')
@@ -34,15 +35,13 @@ if __name__ == '__main__':
     P = params_file()
     P.load(args.param_file, verb=True)
     run_name = P.setup['RunFlag']
-    output_name = P.setup['OutputList']
 
-    output_path = os.path.join(args.pin_dir, output_name)
     plc_path = os.path.join(args.pin_dir, f'pinocchio.{run_name}.plc.out')
     
-    if not os.path.isfile(output_path):
-        raise FileNotFoundError(f'{output_path} not found')
+    if not os.path.isfile(args.shells_file):
+        raise FileNotFoundError(f'{args.shells_file} not found')
  
-    Z = np.loadtxt(output_path)
+    Z = np.loadtxt(args.shells_file)
     Z = np.sort(Z) # just to be safe, shouldn't be necessary
     TOT = len(Z) - 1
 

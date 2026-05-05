@@ -86,7 +86,8 @@ def read_cosmo_params(cosmo_params_file: str, params_idx: dict[str, int], params
     return cosmo_params
 
 def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: str, params: list[str],
-                         total_runs: int, z_out: list[float], seed: int = 1, **kwargs
+                         total_runs: int, z_out: list[float], z_out_shells: list[float] = None, IC_z: float = 20., seed: int = 1,
+                         **kwargs
                          ):
     """
     Setup multiple Pinocchio runs. assuming Omega_m + Omega_lambda = 1
@@ -98,7 +99,11 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
         cosmo_params_file (str): path to the file containing the cosmological parameters 
         params (list[str]): list of the cosmological parameters to read from the file
         total_runs (int): total number of Pinocchio runs to setup
-        z_out (list[float]): list of redshifts for the output file
+        z_out (list[float]): list of redshifts for the output file (box catalogues and, if enabled, mass shells)
+        z_out_shells (list[float], default=None): list of redshifts for the z-shells. If not specified, the output file will
+            contain the same values of `z_out`; this is the expected behaviour when the mass shells are produced (a mismatch causes
+            the failing of the painting).
+        IC_z (float, default=20.): LPT initial conditions redshift
         seed (int, default=1): seed for the random generation (seed*run_number)
         **kwargs: common keyword arguments to pass to the parameter file for ALL RUNS
     """
@@ -114,6 +119,8 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
     cosmo_params = read_cosmo_params(cosmo_params_file, params_idx, params)
 
     z_out_filename = 'outputs'
+    z_out_shells_filename = 'outputs_shells'
+    IC_z_filename = 'IC_z'
     status_filename = 'status'
 
     for run_number in range(total_runs):
@@ -128,6 +135,15 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
         with open(f'{run_dir}/{z_out_filename}', 'w') as f:
             for z in sorted(z_out, reverse = True):
                 f.write(f'{z}\n')
+
+        if z_out_shells is not None:
+
+            with open(f'{run_dir}/{z_out_shells_filename}', 'w') as f:
+                for z in sorted(z_out_shells, reverse = True):
+                    f.write(f'{z}\n')
+
+        with open(f'{run_dir}/{IC_z_filename}'. 'w') as f:
+            f.write(IC_z)
         
         P = params_file(
             RunFlag = run_name,
@@ -165,6 +181,10 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
         # use this version to run Pinocchio
         P.write(f'{run_dir}/parameter_file_{run_name}')
 
+        # use this parameter file to run Pinocchio in LPT Initial Conditions mode
+        P.setup['OutputList'] = IC_z_filename
+        P.write(f'{run_dir}/parameter_file_{run_name}_IC')
+
         with open(f'{run_dir}/{camb_name}', 'w') as f:
             for kh_el, Pk_el in zip(kh, Pk):
                 f.write(f'{kh_el:<15.10f}{Pk_el:.10f}\n')
@@ -181,44 +201,6 @@ def setup_pinocchio_runs(dir_path: str, base_run_name: str, cosmo_params_file: s
     printlog(f'Status file {status_file} saved.')
 
     printlog('Setup done.')
-
-def launch_pinocchio_runs(exec: str, dir_path: str, base_run_name: str, total_runs: int, mpi_procs: int = 5):
-    """
-    A simple way to lunch multiple Pinocchio runs.
-    Use this only for small simulations.
-
-    Args:
-        exec (str): absolute path to the Pinocchio executable
-        dir_path (str): working directory containing all runs
-        base_run_name (str): run template name. run number added at the end (e.g "base_run_name=example"-> "example_1")
-        total_runs (int): total number of Pinocchio runs to execute
-        mpi_procs (int, default=5): number of MPI processors for each run
-    """
-    start_time = datetime.now()
-    printlog(f'Starting Pinocchio runs. TOTAL = {total_runs}.')
-
-    for run_number in range(total_runs):
-        
-        thisrun_start_time = datetime.now()
-        printlog(f'Starting run {run_number+1}/{total_runs}.')
-
-        run_name = f'{base_run_name}_{run_number}'
-        parameter_file = f'parameter_file_{run_name}'
-        
-        run_dir = f'{dir_path}/{run_name}'
-        os.chdir(run_dir)
-
-        # Run CAMB here to generate the Pk so that Pinocchio can start from it
-
-        # os.system(f'mpirun -np {mpi_procs} {exec} {parameter_file} > pinocchio_{run_name}.log')
-        os.system(f"echo 'Dummy: mpirun -np {mpi_procs} {exec} {parameter_file}' > pinnocchio_{run_name}.log")
-        time.sleep(np.random.uniform(2.,8.))
-
-        thisrun_elapsed = format_timedelta_dhms(datetime.now() - thisrun_start_time)
-        printlog(f'Finished run {run_number+1}/{total_runs}. Elapsed time: {thisrun_elapsed}')
-    
-    tot_elapsed = format_timedelta_dhms(datetime.now() - start_time)
-    printlog(f'Finished all computations. Total elapsed time: {tot_elapsed}.')
 
 def cast_type(val):
     """
@@ -261,9 +243,20 @@ if __name__ == '__main__':
                         )
     parser.add_argument('--z-out',
                         nargs='*',
-                        help='redshift for the box snapshots',
+                        help='redshift for the box snapshots and HealPix mass shells',
                         type=float,
                         default=[0.0] # safe default
+                        )
+    parser.add_argument('--z-out-shells',
+                        nargs='*',
+                        help='redshift for the box snapshots and HealPix mass shells',
+                        type=float,
+                        default=None # safe default
+                        )
+    parser.add_argument('--z-IC',
+                        help='LPT initial conditions redshift for a N-body simulation',
+                        type=float,
+                        default=20.
                         )
     parser.add_argument('--setup-args',
                         nargs='*',
@@ -282,14 +275,8 @@ if __name__ == '__main__':
         params = args.params,
         total_runs = args.total_runs,
         z_out = args.z_out,
+        z_out_shells = args.z_out_shells
+        IC_z = args.z_IC,
         **setup_dict
     )
 
-    # For not long simulations (all running inside one job):
-#    launch_pinocchio_runs(
-#        exec='/home/dirac/Documenti/DOTTORATO/Code/pinocchio.x',
-#        dir_path=dir_path,
-#        base_run_name=base_name,
-#        total_runs=total_runs,
-#        mpi_procs=8
-#    )

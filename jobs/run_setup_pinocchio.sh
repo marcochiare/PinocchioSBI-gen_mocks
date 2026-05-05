@@ -59,38 +59,32 @@ PARAMS=(
 
 # Always include 0. or whatever ending redshift for the simulation
 # (values are sorted anyways)
+# A box catalogue is saved for each one of these redshift, and, if the 
+# mass shells are enabled, an healpix map.
 Z_SNAP=(
-	2.000000000000
-	1.907434262995
-	1.723188618705
-	1.554382912656
-	1.399160301249
-	1.255918543942
-	1.000000000003
-	0.942992679411
-	0.886451684155
-	0.831760033291
-	0.778812007111
-	0.727508223193
-	0.677755169340
-	0.629464776814
-	0.582554030021
-	0.536944609231
-	0.492562563187
-	0.449338008940
-	0.407204856351
-	0.366100555129
-	0.325965862358
-	0.286744628730
-	0.248383601907
-	0.210832245519
-	0.174042572504
-	0.137968991589
-	0.102568165866
-	0.067798882457
-	0.033621932408
-	0.000000000000
+	1.0
+	0.1
+	0.0
 )
+
+# Redshift shells to use in the painting process. This should correspond to
+# Z_SNAP if the mass shells are produced. BE CAREFUL! Also these values should
+# correspond to the data set used in the painting
+Z_SHELLS=(
+	2.0 0.9
+	1.8 0.8
+	1.7 0.7
+	1.6 0.6
+	1.5 0.5
+	1.4 0.4
+	1.3 0.3
+	1.2 0.2
+	1.1 0.1
+	1.0 0.0
+)
+
+# LPT IC snapshot
+Z_IC="50."
 
 # ====================== #
 # PINOCCHIO SPECS
@@ -101,19 +95,19 @@ Z_SNAP=(
 # DO NOT ADD SPACES!!
 SETUP=(
 	BoxSize=3870.
-	GridSize=4320
+	GridSize=2160
 	OmegaBaryon=0.049
 	PrimordialIndex=0.96
 	StartingzForPLC=2.0
 	PLCAperture=70.
-	MassMapNSIDE=2048
+	MassMapNSIDE='DISABLE'
 	PLCProvideConeData='DISABLE'
 	PLCCenter='DISABLE'
 	PLCAxis='DISABLE'
 	CatalogInAscii='DISABLE'
-	MinHaloMass=80
+	MinHaloMass=10
 	BoundaryLayerFactor=2.5
-	MaxMem=8400
+	MaxMem=8500
 	MaxMemPerParticle=350
 	PredPeakFactor=1.0
 	seed=115
@@ -134,6 +128,8 @@ echo -e "\033[32m[JOB]\033[0m TOT_RUNS ........... = ${TOT_RUNS}"
 echo -e "\033[32m[JOB]\033[0m COSMO_FILE ......... = ${COSMO_FILE}"
 echo -e "\033[32m[JOB]\033[0m PARAMS ............. = ${PARAMS[@]}"
 echo -e "\033[32m[JOB]\033[0m SNAPSHOTS .......... = ${Z_SNAP[@]}"
+echo -e "\033[32m[JOB]\033[0m SHELLS ............. = ${Z_SHELLS[@]}"
+echo -e "\033[32m[JOB]\033[0m LPT SNAPSHOT IC .... = ${Z_IC}"
 echo -e "\033[32m[JOB]\033[0m OPT. SETUP ......... = ${SETUP[@]}"
 echo -e "\033[32m[JOB]\033[0m .................... " 
 echo -e "\033[32m[JOB]\033[0m PYTHON ............. = $(which python)"
@@ -150,6 +146,8 @@ ARGS=(
 	--cosmo-file "${COSMO_FILE}"
 	--total-runs "${TOT_RUNS}"
 	--z-out "${Z_SNAP[@]}"
+	--z-out-shells "${Z_SHELLS[@]}"
+	--z-IC "${Z_IC}"
 	--params "${PARAMS[@]}"
 	--setup-args "${SETUP[@]}"
 )

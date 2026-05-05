@@ -6,11 +6,14 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
-#SBATCH --mem=0
+#SBATCH --mem=256G
 #SBATCH --job-name=richness_merged
 #SBATCH --output=../logs/richness/slurm-%x_%j.out
 
 set -euo pipefail
+
+# to prevent srun failing
+unset SLURM_MEM_PER_CPU
 
 # ----------------------------
 # Threading: keep libs single-threaded inside each multiprocessing worker
@@ -147,7 +150,7 @@ srun python -u "${PY_SCRIPT}" "${ARGS[@]}" && STATUS="richness-done" || STATUS="
 if [[ -n "$STATUSFILE" ]]; then
 
 	# Update the status in STATUSFILE based on the exit code
-	sed -i "s/^\($RUN_NAME\s\+\).*/\1$STATUS/" "$STATUSFILE"
+	sed -i "s/^\($RUN_MODEL\s\+\).*/\1$STATUS/" "$STATUSFILE"
 
 	if [[ "$STATUS" == "richness-FAILED" ]]; then
 		echo -e "\033[31m[ERR]\033[0m The computation of the richness has failed."
