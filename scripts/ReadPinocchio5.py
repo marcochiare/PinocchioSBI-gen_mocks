@@ -339,7 +339,7 @@ class catalog:
                 return None
             del bindata
 
-            # reads the catalog from the cleaned bynary structure
+            # reads the catalog from the cleaned binary structure
             thiscat = np.frombuffer(cleaned, dtype=stored_dtype)
             del cleaned
 
@@ -612,8 +612,7 @@ class plc:
                     pos+=12
                     vechalo.append(vec)
                     if vec==0:
-                        print("THIS SHOULD NOT HAPPEN!")
-                        return None
+                        print("Found an empty block. THIS SHOULD NOT HAPPEN! Skipped.")
                     Nblocks+=1
                     pos += 8+vec*record_length
                     cleanForm+='16x {}s 4x '.format(vec*record_length)
@@ -634,7 +633,7 @@ class plc:
                     return None
                 del bindata
 
-                # reads the catalog from the cleaned bynary structure
+                # reads the catalog from the cleaned binary structure
                 thiscat = np.frombuffer(cleaned, dtype=stored_dtype)
                 if VERBOSE:
                     print("catalog extracted")
@@ -661,13 +660,17 @@ class plc:
 
 
             # removes unwanted columns from the catalog
-            if self.data is None:
-                self.data = np.zeros(NhalosPerFile[myfile], dtype=self.cat_dtype)
-            else:
-                self.data.resize(self.data.shape[0]+NhalosPerFile[myfile])
+            if NhalosPerFile[myfile] > 0:
+                if self.data is None:
+                    self.data = np.zeros(NhalosPerFile[myfile], dtype=self.cat_dtype)
+                else:
+                    self.data.resize(self.data.shape[0]+NhalosPerFile[myfile])
 
-            for name in self.data.dtype.names:
-                self.data[name][-NhalosPerFile[myfile]:]=thiscat[name]
+                for name in self.data.dtype.names:
+                    self.data[name][-NhalosPerFile[myfile]:]=thiscat[name]
+            else:
+                print(f'Warning: no halos found in this file')
+
             del thiscat
 
 
