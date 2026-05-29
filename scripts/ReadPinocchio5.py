@@ -33,7 +33,10 @@ import sys
 import copy
 import struct
 
+from astropy.io import fits
 
+VERSION = '5.1'
+REPO = 'https://github.com/pigimonaco/Pinocchio'
 VERBOSE=False
 
 class catalog:
@@ -682,7 +685,43 @@ class plc:
         if not silent:
             print("Reading plc done, {} groups found".format(NhalosPerFile.sum()))
 
+    def write_fits(self, filename = None, silent = False):
+        """
+        Writes the PLC to a `.fits` file.
 
+        Args:
+            filename (str, optional): file name for the final .fits file (incl. ev. path to). May or not include
+                the extension `.fits`. If not specified, it uses the same PLC name with the proper 
+                file extension. Defaults to None.
+        """
+
+        if VERBOSE:
+            silent=False
+        
+        if filename is None:
+            filename = os.path.splitext(self.filename)[0] # path/to/file, ext
+            filename += '.fits'
+        elif os.path.splitext(filename)[1] == '':
+            filename += '.fits'
+        else:
+            ext = os.path.splitext(filename)[1] 
+            assert ext in ['.fit', '.fits'], f'You provided a filename extension that is not supported. Found {ext}'
+            
+        if not silent:  print(f'Writing fits PLC {filename}')
+
+        primary_hdu = fits.PrimaryHDU()
+        primary_hdu.header.append(('CODE',f'Pinocchio {VERSION}', REPO))
+
+        hdul = fits.HDUList([primary_hdu])
+        hdu = fits.BinTableHDU(self.data)
+
+        hdu.name = 'plc'
+        hdu.header.append(('NHALOS', self.Nhalos, 'Number of halos in the PLC'))
+
+        hdul.append(hdu)
+        hdul.writeto(filename, overwrite=True)
+
+        if not silent:  print(f'Writing {filename} done')
 
 class histories:
     '''

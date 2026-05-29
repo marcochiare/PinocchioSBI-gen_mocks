@@ -1,4 +1,4 @@
-
+import os
 import re
 from collections import OrderedDict
 
@@ -300,6 +300,9 @@ class params_file(object):
             for key in param_dict:
                 all_keys[key] = param_dict
 
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f'Parameter file {file_path} not found.')
+
         with open(file_path, 'r') as file:
 
             for raw_line in file:
@@ -338,7 +341,7 @@ class params_file(object):
                     value = tokens[1]
 
                 # Convert type; all values are strings initially
-                if value is not None:
+                if value is not None and value != '':
 
                     default_value = param_dict[key]
 
@@ -351,7 +354,7 @@ class params_file(object):
                             pass
 
                     except ValueError:
-                        raise ValueError(f'I am reading a value ({value}) that does not match with the default type for {key}. Expected {type(default_value)}.')
+                        raise ValueError(f'I am reading a value ({value}, type {type(value)}) that does not match with the default type for {key}. Expected {type(default_value)}.')
 
                 # Handle DISABLED
                 if disabled:

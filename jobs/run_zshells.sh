@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --account=CNHPC_1498509
-#SBATCH --partition=boost_usr_prod
-#SBATCH --qos=boost_qos_lprod
+#SBATCH --account=IscrC_SBIxEuCG
+#SBATCH --partition=dcgp_usr_prod
+#SBATCH --qos=normal
 #SBATCH --time=0:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=1
 #SBATCH --job-name=zshells
 #SBATCH --array=0-10%10
 #SBATCH --output=../logs/zshells/slurm-%x_%a.out
@@ -44,6 +44,9 @@ PREFIX="${PREFIX:-plc_shell}"
 # Whether to use or not the redshifts with RDS
 USE_TRUEZ="${USE_TRUEZ:-0}"
 
+# Read the mass calibrated PLC from a .fits file instead of the .out file
+USE_FITS="${USE_FITS:-1}"
+
 # Python script for splitting the PLC in shells
 PY_SCRIPT="${PY_SCRIPT:-../scripts/plc_massshells_parser.py}"
 
@@ -74,6 +77,7 @@ echo -e "\033[32m[JOB]\033[0m PARAMFILE .......... = ${PARAMFILE}"
 echo -e "\033[32m[JOB]\033[0m SHELLSFILE ......... = ${SHELLSFILE}" 
 echo -e "\033[32m[JOB]\033[0m PREFIX ............. = ${PREFIX}" 
 echo -e "\033[32m[JOB]\033[0m USE_TRUEZ .......... = ${USE_TRUEZ}" 
+echo -e "\033[32m[JOB]\033[0m USE_FITS FILE ...... = ${USE_FITS}" 
 echo -e "\033[32m[JOB]\033[0m .................... " 
 echo -e "\033[32m[JOB]\033[0m PYTHON ............. = $(which python)"
 echo -e "\033[32m[JOB]\033[0m PYTHON VERSION ..... = $(python -V)"
@@ -116,6 +120,10 @@ ARGS=(
 
 if [[ "${USE_TRUEZ}" == "1" ]]; then
 	ARGS+=(--use-truez)
+fi
+
+if [[ "${USE_FITS}" == "1" ]]; then
+	ARGS+=(--use-fits)
 fi
 
 # ====================== #

@@ -7,6 +7,7 @@ from ReadPinocchio5 import plc
 
 import time
 from datetime import datetime
+from astropy.io import fits
 
 """
 Script to read a PLC and save it to disc into multiple redshift shells that match the massmap redshifts.
@@ -21,13 +22,14 @@ def printlog(text: str):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Split a PLC into multiple redshift shells, matchi')
+    parser = argparse.ArgumentParser(description='Split a PLC into multiple redshift shells to match the mass shells/parallelise the painting')
 
     parser.add_argument('--pin-dir', type=str, required=True) 
     parser.add_argument('--param-file', type=str, required=True)
     parser.add_argument('--shells-file', type=str, required=True)
     parser.add_argument('--out-prefix', type=str, required=True) 
     parser.add_argument('--use-truez', action='store_true')
+    parser.add_argument('--use-fits', action='store_true')
     parser.add_argument('--ext', type=str, default='.npz')
 
     args = parser.parse_args()
@@ -36,8 +38,11 @@ if __name__ == '__main__':
     P.load(args.param_file, verb=True)
     run_name = P.setup['RunFlag']
 
-    plc_path = os.path.join(args.pin_dir, f'pinocchio.{run_name}.plc.out')
-    
+    if args.use_fits:
+        plc_path = os.path.join(args.pin_dir, f'pinocchio.{run_name}.plc.masscalib.fits')
+    else:
+        plc_path = os.path.join(args.pin_dir, f'pinocchio.{run_name}.plc.out')
+
     if not os.path.isfile(args.shells_file):
         raise FileNotFoundError(f'{args.shells_file} not found')
  
@@ -47,7 +52,11 @@ if __name__ == '__main__':
 
     printlog(f'Splitting {os.path.basename(plc_path)} in {args.pin_dir} into {TOT} files. Range {Z.min():.4f}-{Z.max():.4f}. Prefix: {args.out_prefix}.')
 
-    data = plc(plc_path).data
+    if args.use_fits:
+        data = fits.getdata(plc_path)
+    else:
+        data = plc(plc_path).data
+
     printlog('PLC loaded. Starting to split ...')
 
     for i in range(TOT):
