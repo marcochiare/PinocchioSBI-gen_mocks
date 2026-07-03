@@ -35,11 +35,7 @@ def write_bounds(params: dict, save_dir: str, file_name: str):
 if __name__ == "__main__":
     
     save_dir = 'SobolSeq'
-    file_name = 'models_parameters_5dim_mixed'
-
-    # N = 2^m samples
-    x = int(input('How many samples? (approximated to the closest power of 2): '))
-    m = int(np.rint(np.log2(x)))
+    file_name = 'models_parameters_3dim'
 
     params = {
             'Omega_m': [0.1, 0.5],
@@ -47,8 +43,8 @@ if __name__ == "__main__":
             'h': [0.6, 0.8],
             # generate some extra parameters in the sequence
             # to be later rescaled to the desired cosmo param.
-            'empty1': [0., 1.], # e.g. w0
-            'empty2': [0., 1.], # e.g. wa
+            #'empty1': [0., 1.], # e.g. w0
+            #'empty2': [0., 1.], # e.g. wa
             }
 
     u_bounds = [val[1] for val in params.values()]
@@ -60,11 +56,49 @@ if __name__ == "__main__":
     for key, val in params.items():
         print(f'{key}: {val}')
 
+    continue_seq = input('Continue an existing sequence? [y/n]: ').strip().lower() == 'y'
+
+    if continue_seq:
+
+        existing_file = input('Path to existing sequence (_unscaled.txt): ').strip()
+        assert existing_file.endswith('_unscaled.txt'), 'File does not end with `_unscaled.txt`'
+
+        existing = np.loadtxt(existing_file)
+        n_existing = len(existing)
+        print(f'Loaded {n_existing} values from file')
+
+    else:
+        print('Generating a new sequence')
+        n_existing = 0
+
+    # N = 2^m samples
+    x = int(input('How many total samples (existing, if any, + new)? (approximated to the closest power of 2): '))
+    m = int(np.rint(np.log2(x)))
+    total = 2**m
+
+    if total < n_existing:
+        raise ValueError(f'Closest power of 2 below {x} is {total}, not larger than {n_existing}. Choose a larger value.')
+
     sampler = qmc.Sobol(d=ndim, scramble=True)
-    sample = sampler.random_base2(m=m)
+    if continue_seq:
+        n_new = total - n_existing
+        sampler.fast_forward(n_existing)
+        
+        print(f'Adding {n_new} new samples to the sequence') 
+        sample = sampler.random(n=n_new)
+    else:
+        sample = sampler.random_base2(m=m)
     scaled_sample = qmc.scale(sample, l_bounds, u_bounds)
 
     print(f'Sobol sequence generated ({2**m} samples)\nDiscrepancy: {qmc.discrepancy(sample):.3e}')
+
+    # Add the new sequence to the existing one
+    if continue_seq:
+        sample = np.vstack([existing, sample])
+        scaled_existing = np.loadtxt(existing_file.replace('_unscaled',''))
+        scaled_sample = np.vstack([scaled_existing, scaled_sample])
+
+        print(f'Total number of samples after continuation: {len(sample)}')
 
     write_bounds(params, save_dir, file_name + '_boundaries')
     write_file(params, sample, save_dir, file_name + '_unscaled')
